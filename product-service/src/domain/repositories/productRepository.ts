@@ -1,9 +1,9 @@
 import { Product } from "../entities/product";
 
 export interface ProductRepository {
-    getAllProducts(): Promise<Product[]>;
-    getProductById(id: string): Promise<Product | null>;
-    createProduct(product: Product): Promise<Product>;
-    updateProduct(product: Product): Promise<Product>;
-    deleteProduct(id: string): Promise<void>;
+  getAllproducts(): Promise<Product[]>;
+  getproductById(id: string): Promise<Product | null>;
+  createproduct(product: Omit<Product, "id">): Promise<Product>;
+  updateproduct(product: Omit<Product, "id">, id: string): Promise<number[]>;
+  deleteproduct(id: string): Promise<void>;
 }

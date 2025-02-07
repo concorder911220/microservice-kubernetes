@@ -1,39 +1,65 @@
-import { ProductRepository } from "../../domain/repositories/productRepository";
-import { Product } from "../../domain/entities/product";
-import { query } from "../database/db";
+import { ProductRepository } from "@src/domain/repositories/productRepository";
+import { Product, ProductModelAttributes } from "@src/domain/entities/product";
+import { BaseRepo } from "@src/domain/repositories/BaseRepo";
+import { ModelStatic, Sequelize } from "sequelize";
 
-export class ProductRepositoryImpl implements ProductRepository {
-    async getAllProducts(): Promise<Product[]> {
-        const result = await query("SELECT * FROM products");
-        return result.rows.map((row: any) => new Product(row.id, row.name, row.description, row.price, row.stock));
-    }
+export class productRepositoryImpl
+  extends BaseRepo
+  implements ProductRepository
+{
+  private productInstance: ModelStatic<Product>;
 
-    async getProductById(id: string): Promise<Product | null> {
-        const result = await query("SELECT * FROM products WHERE id = $1", [id]);
-        if (result.rows.length === 0) return null;
-        const row = result.rows[0];
-        return new Product(row.id, row.name, row.description, row.price, row.stock);
-    }
+  constructor(sequelize: Sequelize) {
+    super("products", Product, ProductModelAttributes, sequelize);
 
-    async createProduct(product: Product): Promise<Product> {
-        const result = await query(
-            "INSERT INTO products (name, description, price, stock) VALUES ($1, $2, $3, $4) RETURNING *",
-            [product.name, product.description, product.price, product.stock]
-        );
-        const row = result.rows[0];
-        return new Product(row.id, row.name, row.description, row.price, row.stock);
-    }
+    this.productInstance = sequelize.define(
+      "products",
+      ProductModelAttributes,
+      {
+        tableName: "products",
+        modelName: "products",
+        timestamps: false,
+        charset: "utf8mb4",
+        collate: "utf8mb4_bin",
+      }
+    );
+  }
 
-    async updateProduct(product: Product): Promise<Product> {
-        const result = await query(
-            "UPDATE products SET name = $1, description = $2, price = $3, stock = $4 WHERE id = $5 RETURNING *",
-            [product.name, product.description, product.price, product.stock, product.id]
-        );
-        const row = result.rows[0];
-        return new Product(row.id, row.name, row.description, row.price, row.stock);
-    }
+  async getAllproducts(): Promise<Product[]> {
+    const result = await this.productInstance.findAll();
+    return result;
+  }
 
-    async deleteProduct(id: string): Promise<void> {
-        await query("DELETE FROM products WHERE id = $1", [id]);
+  async getproductById(id: string): Promise<Product | null> {
+    const result = await this.productInstance.findByPk(id);
+    return result;
+  }
+
+  async createproduct(product: Omit<Product, "id">): Promise<Product> {
+    const result = await this.productInstance.create(product);
+    return result;
+  }
+
+  async updateproduct(
+    product: Omit<Product, "id">,
+    id: string
+  ): Promise<number[]> {
+    if (!id) {
+      throw new Error("product id is required!");
     }
+    const result = await this.productInstance.update(product, {
+      where: {
+        id: id,
+      },
+    });
+    return result;
+  }
+
+  async deleteproduct(id: string): Promise<void> {
+    await this.productInstance.destroy({
+      where: {
+        id,
+      },
+    });
+  }
 }

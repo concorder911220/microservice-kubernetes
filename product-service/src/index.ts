@@ -1,5 +1,5 @@
 import logger from 'jet-logger';
-
+import "reflect-metadata"
 import Env from '@src/common/Env';
 import server from './server';
 

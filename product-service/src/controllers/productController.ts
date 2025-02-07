@@ -1,8 +1,8 @@
 import { Request, Response } from "express";
-import { ProductService } from "@src/application/services/productService";
+import { productService } from "@src/application/services/productService";
 
-export class ProductController {
-  constructor(private productService: ProductService) {}
+export class productController {
+  constructor(private productService: productService) {}
 
   async getAllproducts(req: Request, res: Response): Promise<void> {
     try {

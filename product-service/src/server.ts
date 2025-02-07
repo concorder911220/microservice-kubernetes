@@ -1,17 +1,17 @@
-import morgan from 'morgan';
-import path from 'path';
-import helmet from 'helmet';
-import express, { Request, Response, NextFunction } from 'express';
-import logger from 'jet-logger';
+import morgan from "morgan";
+import path from "path";
+import helmet from "helmet";
+import express, { Request, Response, NextFunction } from "express";
+import logger from "jet-logger";
 
-import 'express-async-errors';
+import "express-async-errors";
 
-import Env from '@src/common/Env';
-import HttpStatusCodes from '@src/common/HttpStatusCodes';
-import { RouteError } from '@src/common/route-errors';
-import { NodeEnvs } from '@src/common/constants';
-import { PriceIndexController } from './controllers/PriceIndexController';
-import { PriceIndexServiceInstance } from './application/services/ProductService';
+import Env from "@src/common/Env";
+import HttpStatusCodes from "@src/common/HttpStatusCodes";
+import { RouteError } from "@src/common/route-errors";
+import { NodeEnvs } from "@src/common/constants";
+
+import productRoutes, { db } from "./interfaces/http/routes/productRoutes";
 
 /******************************************************************************
                                 Variables
@@ -19,17 +19,15 @@ import { PriceIndexServiceInstance } from './application/services/ProductService
 
 const app = express();
 
-const priceIndexController = new PriceIndexController(PriceIndexServiceInstance);
-
 // **** Setup
 
 // Basic middleware
 app.use(express.json());
-app.use(express.urlencoded({extended: true}));
+app.use(express.urlencoded({ extended: true }));
 
 // Show routes called in console during development
 if (Env.NodeEnv === NodeEnvs.Dev.valueOf()) {
-  app.use(morgan('dev'));
+  app.use(morgan("dev"));
 }
 
 // Security
@@ -51,11 +49,14 @@ app.use((err: Error, _: Request, res: Response, next: NextFunction) => {
 });
 
 // Nav to users pg by default
-app.get('/', (req: Request, res: Response) => {
-  res.status(200).json(`OrderBook API: ${new Date().getTime()}`)
+app.get("/", (req: Request, res: Response) => {
+  res.status(200).json(`Product API: ${new Date().getTime()}`);
 });
 
-app.get('/price-index', priceIndexController.getPriceIndex.bind(priceIndexController));
+db.connect();
+db.getSequelizeInstance().sync({ force: false });
+
+app.use("/products", productRoutes);
 
 /******************************************************************************
                                 Export default
